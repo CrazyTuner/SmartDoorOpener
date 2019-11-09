@@ -1,0 +1,168 @@
+#include <ESP8266WiFi.h>
+#include <PubSubClient.h>
+#include <Servo.h>
+ 
+#define wifi_ssid "WLANID"
+#define wifi_password "WLANPW"
+
+#define mqtt_server "BROKERIP"
+#define mqtt_user "BROKERUSER"
+#define mqtt_password "BROKERPW"
+
+Servo myservo; 
+int PIEZPIN = 2; //  2 = D4
+
+String servostrin = "0";
+String safestrin = "0";
+String akkustand = "0";
+
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(LED_BUILTIN, OUTPUT); // LED als Output definieren
+  digitalWrite(LED_BUILTIN, LOW); // Ausschalten
+  pinMode(PIEZPIN, OUTPUT); // LED als Output definieren
+  myservo.attach(5);  // attaches the servo on D1 (5) to the servo object
+  setup_wifi();
+}
+
+void callback(char* topic, byte* payload, unsigned int length) {
+  String PayloadString = "";
+  for (int i = 0; i < length; i++) { PayloadString = PayloadString + (char)payload[i]; }
+
+  Serial.println("New message arrived");  
+  Serial.println(topic);  
+  Serial.println(PayloadString);  
+  
+  if(strcmp(topic, "SmartLock/servo") == 0) {    
+    servostrin = PayloadString;
+    Serial.print("servo: ");
+    Serial.println(servostrin);
+  } 
+ 
+  if(strcmp(topic, "SmartLock/safe") == 0) {    
+    safestrin = PayloadString;
+    Serial.print("safe: ");
+    Serial.println(safestrin);
+  }  
+  
+}
+
+void setup_wifi() {
+  delay(10);
+  // We start by connecting to a WiFi network
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(wifi_ssid);
+
+  WiFi.begin(wifi_ssid, wifi_password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  
+  client.setServer(mqtt_server, 1883);
+  client.setCallback(callback);
+}
+
+
+
+void reconnect() {
+  // Loop until we're reconnected
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    // Attempt to connect
+    // If you do not want to use a username and password, change next line to
+    // if (client.connect("ESP8266Client")) {
+    if (client.connect("SmartLock", mqtt_user, mqtt_password)) {
+      Serial.println("connected");
+      client.subscribe("SmartLock/servo");
+      client.subscribe("SmartLock/safe");
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+void melodie() {
+ 
+      tone(14, 100); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 200); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 300); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 400); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 500); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 600); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 700); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 800); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 900); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1000); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1100); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1200); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1300); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1800); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1300); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      tone(14, 1800); // Im Hauptteil wird nun mit dem Befehl "tone ( x , y )" ein Ton abgegeben.
+      delay(100); // mit einer Dauer von 1 Sekunde
+      noTone(14); // Der Ton wird abgeschaltet
+     
+}
+
+void schlossdrehen() {
+ if (servostrin == "ON") {
+  if (safestrin == "ON") {
+      Serial.print("ÖFFNET!");
+      client.publish("display/text", "TÜR ÖFFNET", true);
+      melodie();
+     myservo.write(1);
+     servostrin = "OFF";
+     delay(3000);
+     myservo.write(110);
+  }
+ }
+   client.setCallback(callback);
+}
+
+
+void loop() {
+  if (!client.connected()) {
+    reconnect();
+  }
+    client.loop();
+    schlossdrehen();
+    akkustand = analogRead(A0);
+    delay(500);
+
+      /*
+      Serial.print("Neuer Akkustand:");
+      Serial.println(String(akkustand).c_str());
+      client.publish("SmartLock/akkustand", String(akkustand).c_str(), true);
+
+     */
+}
